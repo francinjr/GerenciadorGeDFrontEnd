@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import GanhosEDespesas from "../components/GanhosEDespesas.vue";
-import TabelaGanhos from "../components/tables/TabelaDeCrud.vue";
 import { ref, reactive, onMounted } from "vue";
 import type GanhoInterface from "../types/GanhoInterface";
-import GanhosAPI from "../services/xpensesAPI";
+import GanhosAPI from "../services/GanhosAPI";
+import TabelaDeCrud from "../components/tables/TabelaDeCrud.vue";
 
-const dadosDosGanhos = reactive<GanhoInterface[]>([]);
 const requisicaoConcluida = ref<boolean>(false);
 
+const endPoint = ref<string>("/ganhos");
 const cabecalhos = ref<any>([
   {
     title: "Nome",
@@ -29,6 +29,17 @@ const cabecalhos = ref<any>([
   },
   { title: "Ações", align: "start", sortable: false, key: "actions" },
 ]);
+
+const dadosDosGanhos = reactive<GanhoInterface[]>([]);
+
+const ganhoPadrao: GanhoInterface = {
+  nome: "",
+  valor: 0,
+  descricao: "",
+  id: 0
+};
+
+const textoDosItensPorPagina = ref<string>("Ganhos por página");
 
 onMounted(() => {
   mostrarTodosGanhos();
@@ -56,7 +67,13 @@ async function mostrarTodosGanhos(): Promise<undefined> {
 <template>
   <main>
     <h1 class="text-center mt-5">Gerenciador de ganhos e despesas</h1>
-    <TabelaGanhos :cabecalhos="cabecalhos" :itensDaTabela="dadosDosGanhos" />
+    <TabelaDeCrud
+      :cabecalhos="cabecalhos"
+      :itensDaTabela="dadosDosGanhos"
+      :endPoint="endPoint"
+      :objetoPadrao="ganhoPadrao"
+      :textoDosItensPorPagina="textoDosItensPorPagina"
+    />
     <GanhosEDespesas :dadosGanhos="dadosDosGanhos" class="mx-auto" />
   </main>
 </template>

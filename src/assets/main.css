@@ -3,6 +3,10 @@
   --secondary-color: white;
   --tertiary-color: #EFF4F9;
   --quaternary-color: black;
+
+  --success-color: #75BA24;
+  --warning-color: #F0E68C;
+  --error-color: #B22222;
 }
 
 * {

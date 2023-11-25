@@ -1,4 +1,5 @@
 import apiClient from "./config";
+import type GanhoInterface from "@/types/GanhoInterface";
 
 class GanhosAPI {
   listarTodos(): Promise<any> {
@@ -9,11 +10,11 @@ class GanhosAPI {
     return apiClient.get(`/ganhos/${id}`);
   }
 
-  adicionar(data: any): Promise<any> {
+  adicionar(data: GanhoInterface): Promise<any> {
     return apiClient.post("/ganhos", data);
   }
 
-  atualizar(id: number, data: any) {
+  atualizar(id: number, data: GanhoInterface) {
     return apiClient.put(`/ganhos/${id}`, data);
   }
 

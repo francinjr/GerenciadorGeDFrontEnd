@@ -4,6 +4,7 @@
       :headers="cabecalhos"
       :items="itensDaTabela"
       class="elevation-1"
+      :items-per-page-text="props.textoDosItensPorPagina"
     >
       <template v-slot:top>
         <v-toolbar flat color="var(--tertiary-color)">
@@ -28,19 +29,19 @@
               <v-card-text>
                 <v-container>
                   <v-row>
-                    <v-col cols="12" sm="6" md="5">
+                    <v-col cols="12" sm="6" md="6">
                       <v-text-field
                         v-model="editedItem.nome"
                         label="Nome do ganho"
                       ></v-text-field>
                     </v-col>
-                    <v-col cols="12" sm="6" md="4">
+                    <v-col cols="12" sm="6" md="6">
                       <v-text-field
                         v-model="editedItem.valor"
                         label="Valor"
                       ></v-text-field>
                     </v-col>
-                    <v-col cols="12" sm="6" md="4">
+                    <v-col cols="12" sm="6" md="12">
                       <v-text-field
                         v-model="editedItem.descricao"
                         label="Descrição"
@@ -100,11 +101,32 @@
           class="my-2 mr-2"
           >Deletar</v-btn
         >
+        <!--<v-btn
+          color="var(--primary-color)"
+          width="95"
+          height="55"
+          @click="buscarItem(item)"
+          class="my-2 mr-2"
+          >Teste de Busca</v-btn
+        >-->
       </template>
       <template v-slot:no-data>
         <v-btn color="primary" @click="initialize"> Reset </v-btn>
       </template>
     </v-data-table>
+    <v-row>
+      <v-col cols="12" sm="12" md="6" class="mx-auto">
+        <v-alert
+          class="mt-5"
+          v-model="alertaDaAPI.alerta"
+          border="top"
+          :color="alertaDaAPI.cor"
+          :title="alertaDaAPI.titulo"
+        >
+          {{ alertaDaAPI.mensagem }}
+        </v-alert>
+      </v-col>
+    </v-row>
   </div>
 </template>
 
@@ -119,8 +141,9 @@ import {
   nextTick,
 } from "vue";
 import { VDataTable } from "vuetify/labs/components";
+import Crud from "../../services/Crud";
+import type GanhoInterface from "@/types/GanhoInterface";
 
-//const itemsPorPagina = ref<number>(10);
 const props = defineProps({
   itensDaTabela: {
     required: true,
@@ -130,38 +153,54 @@ const props = defineProps({
     required: true,
     type: Array as PropType<TableHeader>,
   },
+  endPoint: {
+    required: true,
+    type: String,
+  },
+  objetoPadrao: {
+    required: true,
+    type: Object,
+  },
+  textoDosItensPorPagina: {
+    required: true,
+    type: String,
+  },
 });
 
 type TableHeader = InstanceType<typeof VDataTable>["headers"];
 type TableItemType = typeof props.itensDaTabela;
 
-//const itensDaTabela = ref<any[]>(props.itensTabela);
-
 const dialog = ref<boolean>(false);
 const dialogDelete = ref<boolean>(false);
 
 const editedIndex = ref<number>(-1);
-const editedItem = reactive<any>({
-  name: "",
-  calories: 0,
-  fat: 0,
-  carbs: 0,
-  protein: 0,
-});
-const defaultItem = reactive<any>({
-  name: "",
-  calories: 0,
-  fat: 0,
-  carbs: 0,
-  protein: 0,
+const editedItem = reactive<any>(props.objetoPadrao);
+const defaultItem = reactive<any>(props.objetoPadrao);
+
+interface AlertaDeAPI {
+  alerta: boolean;
+  titulo: string;
+  mensagem: string;
+  cor: string;
+}
+
+const alertaDaAPI = reactive<AlertaDeAPI>({
+  alerta: false,
+  titulo: "",
+  mensagem: "",
+  cor: "black",
 });
 
 onMounted(() => {
   console.log("Montado");
+  console.log(props.objetoPadrao.nome);
+  console.log(props.objetoPadrao.valor);
+  console.log(props.objetoPadrao.descricao);
+  console.log(props.objetoPadrao.id);
 });
 
 const formTitle = computed(() => {
-  return editedIndex.value === -1 ? "Novo item" : "Editar  o item";
+  return editedIndex.value === -1 ? "Novo item" : "Editar o item";
 });
 
 watch(dialog, (val) => {
@@ -177,30 +216,49 @@ watch(dialogDelete, (val) => {
 });
 
 const initialize = () => {
-  console.log("Initialize chamado amigo");
+  console.log("Initialize chamado");
 };
 
 const editItem = (item: any) => {
+  console.log("O id do item no método editItem: " + item.id);
   editedIndex.value = props.itensDaTabela.indexOf(item);
-  editedItem.value = Object.assign({}, item);
+  Object.assign(editedItem, item);
   dialog.value = true;
 };
 
 const deleteItem = (item: any) => {
   editedIndex.value = props.itensDaTabela.indexOf(item);
-  editedItem.value = Object.assign({}, item);
+  Object.assign(editedItem, item);
   dialogDelete.value = true;
 };
 
-function deleteItemConfirm() {
-  props.itensDaTabela.splice(editedIndex.value, 1);
-  closeDelete();
+async function deleteItemConfirm(): Promise<any> {
+  alertaDaAPI.titulo = "Deleção de Item";
+  try {
+    const response = await Crud.deletar(
+      props.endPoint,
+      props.itensDaTabela[editedIndex.value].id
+    );
+    console.log("Status da deleção: " + response.status);
+    props.itensDaTabela.splice(editedIndex.value, 1);
+    alertaDaAPI.cor = "var(--success-color)";
+    alertaDaAPI.mensagem = "Item deletado com sucesso";
+  } catch (error) {
+    alertaDaAPI.cor = "var(--error-color)";
+    alertaDaAPI.mensagem = "Não foi possível deletar o item";
+    console.log("Não foi possível deletar o item: ", error);
+  } finally {
+    mostrarAlerta();
+    closeDelete();
+  }
 }
+
+//watch(() => props.itensDaTabela, () => {});
 
 function close() {
   dialog.value = false;
   nextTick(() => {
-    editedItem.value = Object.assign({}, defaultItem);
+    Object.assign(editedItem, defaultItem);
     editedIndex.value = -1;
   });
 }
@@ -208,19 +266,75 @@ function close() {
 function closeDelete() {
   dialogDelete.value = false;
   nextTick(() => {
-    editedItem.value = Object.assign({}, defaultItem);
+    Object.assign(editedItem, defaultItem);
     editedIndex.value = -1;
   });
 }
 
-function save() {
+async function save(): Promise<undefined> {
   if (editedIndex.value > -1) {
-    Object.assign(props.itensDaTabela[editedIndex.value], editedItem);
+    alertaDaAPI.titulo = "Atualização de Item";
+    console.log(
+      "O nome do editedItem dentro do bloco if é: " + editedItem.nome
+    );
+    console.log("O id do editedItem dentro do bloco if é: " + editedItem.id);
+    console.log("Entrou no atualizar");
+    console.log("Valor dos campos que irão atualizar o item:");
+    console.log(editedItem.nome);
+    console.log(editedItem.valor);
+    console.log(editedItem.descricao);
+    console.log(editedItem.id);
+    try {
+      const response = await Crud.atualizar(
+        props.endPoint,
+        editedItem.id,
+        editedItem
+      );
+      console.log("O response status é: ", response.status);
+      const objetoAtualizado = response.data;
+
+      Object.assign(props.itensDaTabela[editedIndex.value], objetoAtualizado);
+
+      alertaDaAPI.cor = "var(--success-color)";
+      alertaDaAPI.mensagem = "Item atualizado com sucesso";
+    } catch (error) {
+      alertaDaAPI.cor = "var(--error-color)";
+      alertaDaAPI.mensagem = "Não foi possível atualizar o item";
+      console.error("Ocorreu um erro ao atualizar o item: ", error);
+    } finally {
+      mostrarAlerta();
+    }
   } else {
-    props.itensDaTabela.push(editedItem);
+    alertaDaAPI.titulo = "Criação de Item";
+    try {
+      console.log(
+        "O nome do editedItem dentro do bloco else é: " + editedItem.nome
+      );
+      console.log(
+        "O id do editedItem dentro do bloco else é: " + editedItem.id
+      );
+      const response = await Crud.adicionar(props.endPoint, editedItem);
+      const objetoCriado = response.data;
+      props.itensDaTabela.push(objetoCriado);
+      alertaDaAPI.cor = "var(--success-color)";
+      alertaDaAPI.mensagem = "Item criado com sucesso";
+    } catch (error) {
+      alertaDaAPI.cor = "var(--error-color)";
+      alertaDaAPI.mensagem = "Não foi possível adicionar um novo item";
+      console.log("Não foi possível adicionar um novo item" + error);
+    } finally {
+      mostrarAlerta();
+    }
   }
   close();
 }
+
+const mostrarAlerta = () => {
+  alertaDaAPI.alerta = true;
+  setTimeout(() => {
+    alertaDaAPI.alerta = false;
+  }, 5000);
+};
 </script>
 
 <style scoped></style>

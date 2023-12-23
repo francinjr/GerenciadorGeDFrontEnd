@@ -5,7 +5,7 @@
         <v-col cols="6" md="6" sm="12">
           <v-card
             color="var(--tertiary-color)"
-            width="500"
+            width="90%"
             height="800"
             class="mx-auto my-8"
           >
@@ -23,7 +23,7 @@
         <v-col cols="6" md="6" sm="12">
           <v-card
             color="var(--tertiary-color)"
-            width="500"
+            width="90%"
             height="800"
             class="mx-auto my-8"
           >

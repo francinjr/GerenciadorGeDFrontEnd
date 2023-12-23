@@ -11,7 +11,7 @@
           <v-toolbar-title>Tabela de Ganhos</v-toolbar-title>
           <v-divider class="mx-4" inset vertical></v-divider>
           <v-spacer></v-spacer>
-          <v-dialog v-model="dialog" max-width="500px">
+          <v-dialog v-model="dialog" max-width="50%">
             <template v-slot:activator="{ props }">
               <v-btn
                 color="var(--quaternary-color)"
@@ -27,28 +27,8 @@
               </v-card-title>
 
               <v-card-text>
-                <v-container>
-                  <v-row>
-                    <v-col cols="12" sm="6" md="6">
-                      <v-text-field
-                        v-model="editedItem.nome"
-                        label="Nome do ganho"
-                      ></v-text-field>
-                    </v-col>
-                    <v-col cols="12" sm="6" md="6">
-                      <v-text-field
-                        v-model="editedItem.valor"
-                        label="Valor"
-                      ></v-text-field>
-                    </v-col>
-                    <v-col cols="12" sm="6" md="12">
-                      <v-text-field
-                        v-model="editedItem.descricao"
-                        label="Descrição"
-                      ></v-text-field>
-                    </v-col>
-                  </v-row>
-                </v-container>
+                <!--<TableForm :objetoFormulario="props.objetoPadrao" />-->
+                <component :is="props.formularioDaTabela" :objetoFormulario="props.objetoPadrao" />
               </v-card-text>
 
               <v-card-actions>
@@ -165,10 +145,17 @@ const props = defineProps({
     required: true,
     type: String,
   },
+  formularioDaTabela: {
+    required: true,
+    type: Object
+  }
 });
+
 
 type TableHeader = InstanceType<typeof VDataTable>["headers"];
 type TableItemType = typeof props.itensDaTabela;
+
+//const meuComponente = TableForm;
 
 const dialog = ref<boolean>(false);
 const dialogDelete = ref<boolean>(false);

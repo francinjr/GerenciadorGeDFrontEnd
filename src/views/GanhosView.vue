@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import GanhosEDespesas from "../components/GanhosEDespesas.vue";
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, onMounted, shallowRef } from "vue";
 import type GanhoInterface from "../types/GanhoInterface";
 import GanhosAPI from "../services/GanhosAPI";
 import TabelaDeCrud from "../components/tables/TabelaDeCrud.vue";
+import GanhosForm from "@/components/forms/GanhosForm.vue";
 
 const requisicaoConcluida = ref<boolean>(false);
 
@@ -36,10 +37,15 @@ const ganhoPadrao: GanhoInterface = {
   nome: "",
   valor: 0,
   descricao: "",
-  id: 0
+  id: 0,
 };
 
 const textoDosItensPorPagina = ref<string>("Ganhos por página");
+
+// aqui é onde coloca o formulário que deseja que aparece ao clicar no botão Novo,
+//na tabela de crud
+const formularioGanhos = ref(GanhosForm);
+//const formularioGanhos = shallowRef(GanhosForm);
 
 onMounted(() => {
   mostrarTodosGanhos();
@@ -73,7 +79,14 @@ async function mostrarTodosGanhos(): Promise<undefined> {
       :endPoint="endPoint"
       :objetoPadrao="ganhoPadrao"
       :textoDosItensPorPagina="textoDosItensPorPagina"
+      :formularioDaTabela="formularioGanhos"
     />
-    <GanhosEDespesas :dadosGanhos="dadosDosGanhos" class="mx-auto" />
+    <v-container>
+      <v-row>
+        <v-col cols="12" md="12" sm="12">
+          <GanhosEDespesas :dadosGanhos="dadosDosGanhos" class="mx-auto" />
+        </v-col>
+      </v-row>
+    </v-container>
   </main>
 </template>

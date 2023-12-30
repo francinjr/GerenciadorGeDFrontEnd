@@ -35,14 +35,14 @@ const dadosDosGanhos = reactive<GanhoInterface[]>([]);
 
 const ganhoPadrao: GanhoInterface = {
   nome: "",
-  valor: 0,
+  valor: null,
   descricao: "",
   id: 0,
 };
 
 const textoDosItensPorPagina = ref<string>("Ganhos por página");
 
-// aqui é onde coloca o formulário que deseja que aparece ao clicar no botão Novo,
+// aqui é onde coloca o formulário que deseja que apareça ao clicar no botão Novo,
 //na tabela de crud
 const formularioGanhos = ref(GanhosForm);
 //const formularioGanhos = shallowRef(GanhosForm);

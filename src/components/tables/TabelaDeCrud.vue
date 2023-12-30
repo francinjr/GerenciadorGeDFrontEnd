@@ -3,7 +3,7 @@
     <v-data-table
       :headers="cabecalhos"
       :items="itensDaTabela"
-      class="elevation-1"
+      class="elevation-2"
       :items-per-page-text="props.textoDosItensPorPagina"
     >
       <template v-slot:top>
@@ -28,7 +28,10 @@
 
               <v-card-text>
                 <!--<TableForm :objetoFormulario="props.objetoPadrao" />-->
-                <component :is="props.formularioDaTabela" :objetoFormulario="props.objetoPadrao" />
+                <component
+                  :is="props.formularioDaTabela"
+                  :objetoFormulario="props.objetoPadrao"
+                />
               </v-card-text>
 
               <v-card-actions>
@@ -99,7 +102,6 @@
         <v-alert
           class="mt-5"
           v-model="alertaDaAPI.alerta"
-          border="top"
           :color="alertaDaAPI.cor"
           :title="alertaDaAPI.titulo"
         >
@@ -147,10 +149,9 @@ const props = defineProps({
   },
   formularioDaTabela: {
     required: true,
-    type: Object
-  }
+    type: Object,
+  },
 });
-
 
 type TableHeader = InstanceType<typeof VDataTable>["headers"];
 type TableItemType = typeof props.itensDaTabela;
@@ -162,7 +163,7 @@ const dialogDelete = ref<boolean>(false);
 
 const editedIndex = ref<number>(-1);
 const editedItem = reactive<any>(props.objetoPadrao);
-const defaultItem = reactive<any>(props.objetoPadrao);
+const defaultItem = Object.assign({}, props.objetoPadrao);
 
 interface AlertaDeAPI {
   alerta: boolean;
@@ -230,9 +231,9 @@ async function deleteItemConfirm(): Promise<any> {
     props.itensDaTabela.splice(editedIndex.value, 1);
     alertaDaAPI.cor = "var(--success-color)";
     alertaDaAPI.mensagem = "Item deletado com sucesso";
-  } catch (error) {
+  } catch (error: any) {
     alertaDaAPI.cor = "var(--error-color)";
-    alertaDaAPI.mensagem = "Não foi possível deletar o item";
+    alertaDaAPI.mensagem = error.response?.data.message;
     console.log("Não foi possível deletar o item: ", error);
   } finally {
     mostrarAlerta();
@@ -272,6 +273,7 @@ async function save(): Promise<undefined> {
     console.log(editedItem.descricao);
     console.log(editedItem.id);
     try {
+      editedItem.id = 8;
       const response = await Crud.atualizar(
         props.endPoint,
         editedItem.id,
@@ -284,9 +286,9 @@ async function save(): Promise<undefined> {
 
       alertaDaAPI.cor = "var(--success-color)";
       alertaDaAPI.mensagem = "Item atualizado com sucesso";
-    } catch (error) {
+    } catch (error: any) {
       alertaDaAPI.cor = "var(--error-color)";
-      alertaDaAPI.mensagem = "Não foi possível atualizar o item";
+      alertaDaAPI.mensagem = error.response?.data.message;
       console.error("Ocorreu um erro ao atualizar o item: ", error);
     } finally {
       mostrarAlerta();
@@ -294,20 +296,16 @@ async function save(): Promise<undefined> {
   } else {
     alertaDaAPI.titulo = "Criação de Item";
     try {
-      console.log(
-        "O nome do editedItem dentro do bloco else é: " + editedItem.nome
-      );
-      console.log(
-        "O id do editedItem dentro do bloco else é: " + editedItem.id
-      );
+      console.log("O nome editedItem testando o erro ao criar um item é:" + editedItem.nome);
       const response = await Crud.adicionar(props.endPoint, editedItem);
       const objetoCriado = response.data;
       props.itensDaTabela.push(objetoCriado);
       alertaDaAPI.cor = "var(--success-color)";
       alertaDaAPI.mensagem = "Item criado com sucesso";
-    } catch (error) {
+    } catch (error: any) {
       alertaDaAPI.cor = "var(--error-color)";
-      alertaDaAPI.mensagem = "Não foi possível adicionar um novo item";
+      //alertaDaAPI.mensagem = "Não foi possível adicionar um novo item";
+      alertaDaAPI.mensagem = error.response?.data.message;
       console.log("Não foi possível adicionar um novo item" + error);
     } finally {
       mostrarAlerta();

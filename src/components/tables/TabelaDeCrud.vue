@@ -21,29 +21,46 @@
                 Novo
               </v-btn>
             </template>
-            <v-card>
-              <v-card-title>
-                <span class="text-h5">{{ formTitle }}</span>
-              </v-card-title>
+            <v-form @submit.prevent="save">
+              <v-card>
+                <v-card-title>
+                  <span class="text-h5">{{ formTitle }}</span>
+                </v-card-title>
 
-              <v-card-text>
-                <!--<TableForm :objetoFormulario="props.objetoPadrao" />-->
-                <component
-                  :is="props.formularioDaTabela"
-                  :objetoFormulario="props.objetoPadrao"
-                />
-              </v-card-text>
+                <v-card-text>
+                  <!--<TableForm :objetoFormulario="props.objetoPadrao" />-->
 
-              <v-card-actions>
-                <v-spacer></v-spacer>
-                <v-btn color="blue-darken-1" variant="text" @click="close">
-                  Cancelar
-                </v-btn>
-                <v-btn color="blue-darken-1" variant="outlined" @click="save">
-                  Salvar
-                </v-btn>
-              </v-card-actions>
-            </v-card>
+                  <component
+                    :is="props.formularioDaTabela"
+                    :objetoFormulario="props.objetoPadrao"
+                    :objectFormData="props.objectFormData"
+                    :objectFormDataValidation="objectFormDataValidation"
+                  />
+                </v-card-text>
+
+                <v-card-actions>
+                  <v-spacer></v-spacer>
+                  <v-btn
+                    class="v-btn-form-style"
+                    variant="outlined"
+                    @click="close"
+                    width="12%"
+                    height="3em"
+                  >
+                    Cancelar
+                  </v-btn>
+                  <v-btn
+                    class="v-btn-form-style"
+                    variant="outlined"
+                    width="12%"
+                    height="3em"
+                    type="submit"
+                  >
+                    Salvar
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-form>
           </v-dialog>
           <v-dialog v-model="dialogDelete" max-width="500px">
             <v-card>
@@ -124,7 +141,7 @@ import {
 } from "vue";
 import { VDataTable } from "vuetify/labs/components";
 import Crud from "../../services/Crud";
-import type GanhoInterface from "@/types/GanhoInterface";
+import type FinanceInterface from "@/types/FinanceInterface";
 
 const props = defineProps({
   itensDaTabela: {
@@ -151,6 +168,14 @@ const props = defineProps({
     required: true,
     type: Object,
   },
+  objectFormData: {
+    required: true,
+    type: Object,
+  },
+  setSpecialFields: {
+    required: true,
+    type: Function as PropType<() => void>,
+  },
 });
 
 type TableHeader = InstanceType<typeof VDataTable>["headers"];
@@ -162,7 +187,7 @@ const dialog = ref<boolean>(false);
 const dialogDelete = ref<boolean>(false);
 
 const editedIndex = ref<number>(-1);
-const editedItem = reactive<any>(props.objetoPadrao);
+//const editedItem = reactive<any>(props.objetoPadrao);
 const defaultItem = Object.assign({}, props.objetoPadrao);
 
 interface AlertaDeAPI {
@@ -179,12 +204,12 @@ const alertaDaAPI = reactive<AlertaDeAPI>({
   cor: "black",
 });
 
+const objectFormDataValidation = ref<any>({
+  name: "",
+})
+
 onMounted(() => {
   console.log("Montado");
-  console.log(props.objetoPadrao.nome);
-  console.log(props.objetoPadrao.valor);
-  console.log(props.objetoPadrao.descricao);
-  console.log(props.objetoPadrao.id);
 });
 
 const formTitle = computed(() => {
@@ -208,15 +233,14 @@ const initialize = () => {
 };
 
 const editItem = (item: any) => {
-  console.log("O id do item no método editItem: " + item.id);
   editedIndex.value = props.itensDaTabela.indexOf(item);
-  Object.assign(editedItem, item);
+  Object.assign(props.objectFormData, item);
   dialog.value = true;
 };
 
 const deleteItem = (item: any) => {
   editedIndex.value = props.itensDaTabela.indexOf(item);
-  Object.assign(editedItem, item);
+  Object.assign(props.objectFormData, item);
   dialogDelete.value = true;
 };
 
@@ -227,14 +251,12 @@ async function deleteItemConfirm(): Promise<any> {
       props.endPoint,
       props.itensDaTabela[editedIndex.value].id
     );
-    console.log("Status da deleção: " + response.status);
     props.itensDaTabela.splice(editedIndex.value, 1);
     alertaDaAPI.cor = "var(--success-color)";
     alertaDaAPI.mensagem = "Item deletado com sucesso";
   } catch (error: any) {
     alertaDaAPI.cor = "var(--error-color)";
     alertaDaAPI.mensagem = error.response?.data.message;
-    console.log("Não foi possível deletar o item: ", error);
   } finally {
     mostrarAlerta();
     closeDelete();
@@ -246,7 +268,7 @@ async function deleteItemConfirm(): Promise<any> {
 function close() {
   dialog.value = false;
   nextTick(() => {
-    Object.assign(editedItem, defaultItem);
+    Object.assign(props.objectFormData, defaultItem);
     editedIndex.value = -1;
   });
 }
@@ -254,41 +276,31 @@ function close() {
 function closeDelete() {
   dialogDelete.value = false;
   nextTick(() => {
-    Object.assign(editedItem, defaultItem);
+    Object.assign(props.objectFormData, defaultItem);
     editedIndex.value = -1;
   });
 }
 
 async function save(): Promise<undefined> {
+  props.setSpecialFields();
   if (editedIndex.value > -1) {
     alertaDaAPI.titulo = "Atualização de Item";
-    console.log(
-      "O nome do editedItem dentro do bloco if é: " + editedItem.nome
-    );
-    console.log("O id do editedItem dentro do bloco if é: " + editedItem.id);
-    console.log("Entrou no atualizar");
-    console.log("Valor dos campos que irão atualizar o item:");
-    console.log(editedItem.nome);
-    console.log(editedItem.valor);
-    console.log(editedItem.descricao);
-    console.log(editedItem.id);
     try {
-      editedItem.id = 8;
       const response = await Crud.atualizar(
         props.endPoint,
-        editedItem.id,
-        editedItem
+        props.objectFormData.id,
+        props.objectFormData
       );
       console.log("O response status é: ", response.status);
-      const objetoAtualizado = response.data;
+      const updatedObject = response.data;
 
-      Object.assign(props.itensDaTabela[editedIndex.value], objetoAtualizado);
+      Object.assign(props.itensDaTabela[editedIndex.value], updatedObject);
 
       alertaDaAPI.cor = "var(--success-color)";
       alertaDaAPI.mensagem = "Item atualizado com sucesso";
     } catch (error: any) {
       alertaDaAPI.cor = "var(--error-color)";
-      alertaDaAPI.mensagem = error.response?.data.message;
+      alertaDaAPI.mensagem = error.response?.data.detail;
       console.error("Ocorreu um erro ao atualizar o item: ", error);
     } finally {
       mostrarAlerta();
@@ -296,22 +308,37 @@ async function save(): Promise<undefined> {
   } else {
     alertaDaAPI.titulo = "Criação de Item";
     try {
-      console.log("O nome editedItem testando o erro ao criar um item é:" + editedItem.nome);
-      const response = await Crud.adicionar(props.endPoint, editedItem);
-      const objetoCriado = response.data;
-      props.itensDaTabela.push(objetoCriado);
+      console.log("Imprimindo os valores do objectFormData em json formatado");
+      console.log(JSON.stringify(props.objectFormData, null, 2));
+
+      const response = await Crud.adicionar(
+        props.endPoint,
+        props.objectFormData
+      );
+      const createdObject = response.data;
+      props.itensDaTabela.push(createdObject);
       alertaDaAPI.cor = "var(--success-color)";
       alertaDaAPI.mensagem = "Item criado com sucesso";
     } catch (error: any) {
       alertaDaAPI.cor = "var(--error-color)";
       //alertaDaAPI.mensagem = "Não foi possível adicionar um novo item";
-      alertaDaAPI.mensagem = error.response?.data.message;
+      //alertaDaAPI.mensagem = error.response?.data.message;
+      alertaDaAPI.mensagem = error.response?.data.detail;
+      console.log("Mensagme de erro deveria ser: ", alertaDaAPI.mensagem);
+
+      let validationFields = error.response?.data.fields;
+      formValidationMapper(validationFields);
       console.log("Não foi possível adicionar um novo item" + error);
     } finally {
       mostrarAlerta();
     }
   }
-  close();
+  //close();
+}
+
+function formValidationMapper(validationFields: any) {
+  // criar o mapper aqui e depois mandar para o form um array em que cada posição desse array corresponde a mensagem
+  // de erro de cada campo do formulario. (Concatenando os erros do campo x todos em uma só mensagem para cada campo)
 }
 
 const mostrarAlerta = () => {
@@ -322,4 +349,17 @@ const mostrarAlerta = () => {
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.v-btn-form-style {
+  color: "var(--quaternary-color)";
+  font-weight: bold;
+  background-color: var(--tertiary-color);
+  border-radius: 8px;
+  border: 0.2em solid var(--quaternary-color);
+}
+
+.v-btn-form-style:hover {
+  background-color: var(--primary-color);
+}
+</style>
+@/types/FinanceInterface

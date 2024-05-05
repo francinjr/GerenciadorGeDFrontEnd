@@ -22,7 +22,7 @@ onMounted(() => {
                 >
                 <RouterLink to="/ganhos">
                   <v-btn color="var(--primary-color)" class="my-1" width="100%"
-                    >Ganhos</v-btn
+                    >Finanças</v-btn
                   >
                 </RouterLink>
                 <RouterLink to="/about"

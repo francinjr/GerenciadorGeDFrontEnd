@@ -19,11 +19,11 @@ const vuetify = createVuetify({
         themes: {
           light: {
             colors: {
-              primary: '#ff5733', // Substitua esta cor pela sua cor personalizada
+              primary: '#ff5733',
             },
           },
         },
-      },*/
+      },*/ 
 })
 
 app.use(vuetify)

@@ -9,11 +9,11 @@
   --error-color: #B22222;
 }
 
-* {
+body {
   font-family: 'Segoe UI';
-  color: var(--quaternary-color)
-  /*font-weight: bold;*/
-  /* font-family: 'Consolas';*/
+  color: var(--quaternary-color);
+  font-weight: 550;
+  font-size: 15px;
 }
 
 /*@import './base.css';

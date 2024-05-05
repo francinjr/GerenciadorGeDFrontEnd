@@ -1,39 +1,29 @@
 <template>
   <div>
-    <v-container>
+    <v-container fluid>
       <v-row no-gutters>
-        <v-col cols="6" md="6" sm="12">
-          <v-card
-            color="var(--tertiary-color)"
-            width="90%"
-            height="800"
-            class="mx-auto my-8"
-          >
-            <v-card-title>Ganhos</v-card-title>
-            <v-divider></v-divider>
-            <v-list lines="one" style="background-color: var(--tertiary-color)">
-              <v-list-item v-for="ganho in dadosGanhos" :key="ganho.id">
-                {{ ganho.nome }} - R$ {{ ganho.valor }}<br />
-                {{ ganho.descricao }}
-                <v-divider></v-divider>
-              </v-list-item>
-            </v-list>
-          </v-card>
-        </v-col>
-        <v-col cols="6" md="6" sm="12">
-          <v-card
-            color="var(--tertiary-color)"
-            width="90%"
-            height="800"
-            class="mx-auto my-8"
-          >
-            <v-card-title>Despesas</v-card-title>
-            <v-list lines="one" style="background-color: var(--tertiary-color)">
-              <v-list-item v-for="ganho in dadosGanhos" :key="ganho.id">
-                {{ ganho.nome }} - R$ {{ ganho.valor }}
-              </v-list-item>
-            </v-list>
-          </v-card>
+        <v-col cols="12" md="12" sm="12">
+          <v-sheet color="var(--tertiary-color)" class="d-flex" elevation="2">
+            <v-container fluid>
+              <v-row>
+                <v-col
+                  v-for="financa in props.dadosGanhos"
+                  :key="financa.id"
+                  cols="12"
+                  md="6"
+                  lg="4"
+                >
+                  <v-card class="ma-2">
+                    <span class="ma-2">{{ financa.nome }}<br /></span>
+                    <span class="ma-2">{{ financa.valor }}<br /></span>
+                    <span class="ma-2">{{ financa.descricao }}<br /></span>
+                    <v-btn color="var(--primary-color)" class="ma-2">E</v-btn>
+                    <v-btn color="var(--primary-color)" class="ma-2">D</v-btn>
+                  </v-card>
+                </v-col>
+              </v-row>
+            </v-container>
+          </v-sheet>
         </v-col>
       </v-row>
     </v-container>
@@ -52,4 +42,7 @@ const props = defineProps({
 });
 
 onMounted(() => {});
+
+
 </script>
+../types/FinanceInterface

@@ -18,7 +18,7 @@ class Crud {
 
   atualizar(endPoint: string, id: number, data: any): Promise<any> {
     console.log(`${endPoint}/${id}`);
-    return apiClient.put(`${endPoint}/${id}`, data);
+    return apiClient.put(`${endPoint}`, data);
   }
 
   deletar(endPoint: string, id: number): Promise<any> {
